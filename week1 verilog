@@ -1,0 +1,187 @@
+`timescale 1ns / 1ps
+
+module week1(clk, en_conv, out);
+    input clk;
+    input en_conv;
+    output [7:0]out;
+
+reg [7:0] r, g, b;
+reg [7:0] y, cb, cr;
+
+reg [7:0] Y_mem [0:255];
+reg [7:0] CB_mem [0:255];
+reg [7:0] CR_mem [0:255];
+
+reg [7:0] CB_mem_dwn [0:1023];
+reg [7:0] CR_mem_dwn [0:1023];
+
+reg [7:0] Y_div [0:63];
+reg [7:0] CB_div [0:15];
+reg [7:0] CR_div [0:15]; 
+
+reg [7:0] Yr, Yg, Yb;
+reg [7:0] CBr, CBg, CBb;
+reg [7:0] CRr, CRg, CRb;
+
+reg [9:0]i = 0, j = 0;
+reg [3:0]state = 0;
+
+rgb_stored read (
+                    .clka(clk),    // input wire clka
+                    .ena(en_conv),      // input wire ena
+                    .wea(1'b0),      // input wire [0 : 0] wea
+                    .addra(i),  // input wire [9 : 0] addra
+                    .dina(),    // input wire [7 : 0] dina
+                    .douta(X)  // output wire [7 : 0] douta
+                    );
+                    
+always @(posedge clk) begin
+    if (en_conv) begin
+    
+        case (state)
+            
+            0: begin
+                i <= i;
+                state <= state + 1;
+            end
+            
+            1: begin
+                i <= i; 
+                state <= state + 1;
+            end
+            
+            2: begin
+                r <= X;
+                i <= i + 1;
+                state <= state + 1;
+            end
+            
+            3: begin
+                g <= X;
+                i <= i + 1;
+                state <= state + 1;
+            end
+            
+            4: begin
+                b <= X;
+                i <= i + 1;
+                state <= state + 1;
+            end
+            
+            5: begin
+                Yr = (65.738 / 256.0) * r ;
+	            Yg = (129.057 / 256.0) * g ;
+	            Yb = (25.064 / 256.0) * b ;
+	            y  = 16 + Yr + Yg + Yb;              ////
+	            CBr = (37.945 / 256.0) * r ;
+	            CBg = (74.494 / 256.0) * g ;
+	            CBb = (112.439 / 256.0) * b ;
+	            cb  = 128 - CBr - CBg + CBb;         ////
+	            CRr = (112.439 / 256.0) * r ;
+	            CRg = (94.154 / 256.0) * g ;
+	            CRb = (18.285 / 256.0) * b ;
+	            cr  = 128 + CRr - CRg - CRb;         ////
+	            state <= state + 1;
+            end
+            
+            6: begin
+                Y_mem[j] <= y;
+                CB_mem[j] <= cb;
+                CR_mem[j] <= cr; 
+                j <= j + 1;               
+                state <= 0;
+            end
+                                           
+        endcase
+        
+    end
+end
+    
+wire en_dwn;
+assign en_dwn = ~(Y_mem[255] == 0);
+    
+reg [9:0] k = 0; 
+reg [9:0] kk = 0;
+
+always @(posedge clk) begin
+    if (en_dwn) begin
+
+        CB_mem_dwn[k/2] <= (CB_mem[k] + CB_mem[k+1] + CB_mem[k+16] + CB_mem[k+17]) / 4;
+        CR_mem_dwn[k/2] <= (CR_mem[k] + CR_mem[k+1] + CR_mem[k+16] + CR_mem[k+17]) / 4;
+        kk <= kk + 1;
+        k <= k + 2;
+        if (kk == 8) begin
+            k <= k + 18;
+            kk <= 0;
+        end
+
+    end 
+end    
+    
+    
+reg [9:0] l = 0; 
+reg [9:0] ll = 0;
+reg [9:0] wid = 0;
+reg [9:0] ht = 0;
+ 
+// The 1st 8x8 block 
+wire en_div;
+assign en_div = ~(CB_mem_dwn[63] == 0);
+    
+always @(posedge clk) begin
+    if (en_div) begin
+
+        Y_div[ll] <=  Y_mem[l]; 
+        ll <= ll + 1;          
+        wid <= wid + 1;
+        l <= l + 1;
+        if (wid == 8) begin
+            l <= l + 9;
+            wid <= 0;
+            ht <= ht + 1;
+        end
+        if (ht == 8) begin
+            l <= l - 111;
+            ht <= 0;
+        end
+       
+    end  
+end     
+       
+reg [9:0] m = 0; 
+reg [9:0] mm = 0;
+reg [9:0] widd = 0;
+reg [9:0] htt = 0;
+        
+always @(posedge clk) begin
+    if (en_div) begin
+
+        CB_div[mm] <=  CB_mem_dwn[m]; 
+        CR_div[mm] <=  CR_mem_dwn[m]; 
+        mm <= mm + 1;          
+        widd <= widd + 1;
+        m <= m + 1;
+        if (widd == 2) begin
+            m <= m + 3;
+            widd <= 0;
+            htt <= htt + 1;
+        end
+        if (htt == 2) begin
+            m <= m - 3;
+            htt <= 0;
+        end
+        
+    end  
+end 
+
+//wire en_dct;
+//assign en_dct = (CB_div[15] == 0);
+//reg [7:0] O [0:63];
+//week2_3 uutt (Y_div, clk, 1'b0, O);
+
+//reg [7:0] COUNT [0:63]; 
+//reg [7:0] DATA [0:63];
+//reg [7:0] ZZ [0:63];
+//week4 uuttt (O, clk, ZZ, COUNT, DATA);
+
+endmodule
