@@ -1,0 +1,122 @@
+`timescale 1ns / 1ps
+
+module week4(Q, clk, ZZ, COUNT, DATA);
+    input [7:0] Q [0:63];
+    input clk;
+    output reg [7:0] ZZ [0:63];
+    output reg [7:0] COUNT [0:63]; 
+    output reg [7:0] DATA [0:63];
+    
+reg [3:0] row = 0;
+reg [3:0] col = 0;
+reg T = 1;
+reg [5:0] c = 0;
+
+always @(posedge clk) begin
+  if ((row < 8) & (col < 8)) begin
+    
+    case (T)
+    
+      1:  begin
+          if ((col == 0) | (row == 7))  begin
+              T = 0;  
+              if (row == 7)  begin
+                  ZZ[c] = Q[(8 * row) + col];
+
+                  col += 1; 
+                  c += 1; 
+                  end 
+              else  begin
+                  ZZ[c] = Q[(8 * row) + col];
+
+                  row += 1;
+                  c += 1;
+                  end
+              end
+          else  begin
+                ZZ[c] = Q[(8 * row) + col];
+
+                row += 1;  
+                col -= 1;
+                c += 1;
+              end
+          end
+       
+      0:  begin
+          if ((row == 0) | (col == 7))  begin
+              T = 1;  
+              if (col == 7)  begin
+                  ZZ[c] = Q[(8 * row) + col];
+
+                  row += 1;
+                  c += 1;
+                  end 
+              else  begin
+                  ZZ[c] = Q[(8 * row) + col];
+
+                  col += 1;
+                  c += 1;
+                  end 
+              end       
+          else  begin
+              ZZ[c] = Q[(8 * row) + col];
+
+              row -= 1; 
+              col += 1;
+              c += 1;
+              end
+          end
+    
+    endcase
+  end  
+end
+    
+
+wire [7:0] Z [0:63];
+assign Z = ZZ;
+
+wire compl = 0;
+assign compl = (Z[63] == 0);
+   
+   
+rle_encoder ut (Z, ~compl, COUNT, DATA);  
+    
+endmodule
+
+    
+module rle_encoder(
+    input signed [7:0] zigzag_data [0:63], 
+    input enable,
+    output reg [7:0] rle_count [0:63],
+    output reg [7:0] rle_data [0:63]
+);
+
+integer count;
+integer rle_index;
+reg [7:0] prev_val;
+
+always @* begin
+  if (enable) begin
+  
+    count = 1;
+    rle_index = 0;
+    prev_val = zigzag_data[0];
+
+    for (int i = 1; i < 64; i = i + 1) begin
+        if (zigzag_data[i] == prev_val) begin
+            count = count + 1;
+        end else begin
+            rle_data[rle_index]  = prev_val;
+            rle_count[rle_index] = count;
+            rle_index = rle_index + 1;
+            prev_val = zigzag_data[i];
+            count = 1;
+        end
+    end
+    rle_data[rle_index]  = prev_val;
+    rle_count[rle_index] = count;
+    
+  end
+end
+    
+endmodule
