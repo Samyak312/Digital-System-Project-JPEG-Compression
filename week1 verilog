@@ -12,8 +12,8 @@ reg [7:0] Y_mem [0:255];
 reg [7:0] CB_mem [0:255];
 reg [7:0] CR_mem [0:255];
 
-reg [7:0] CB_mem_dwn [0:1023];
-reg [7:0] CR_mem_dwn [0:1023];
+reg [7:0] CB_mem_dwn [0:63];
+reg [7:0] CR_mem_dwn [0:63];
 
 reg [7:0] Y_div [0:63];
 reg [7:0] CB_div [0:15];
