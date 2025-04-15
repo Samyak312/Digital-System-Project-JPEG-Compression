@@ -148,31 +148,31 @@ always @(posedge clk) begin
     end  
 end     
        
-reg [9:0] m = 0; 
-reg [9:0] mm = 0;
-reg [9:0] widd = 0;
-reg [9:0] htt = 0;
+//reg [9:0] m = 0; 
+//reg [9:0] mm = 0;
+//reg [9:0] widd = 0;
+//reg [9:0] htt = 0;
         
-always @(posedge clk) begin
-    if (en_div) begin
+//always @(posedge clk) begin
+//    if (en_div) begin
 
-        CB_div[mm] <=  CB_mem_dwn[m]; 
-        CR_div[mm] <=  CR_mem_dwn[m]; 
-        mm <= mm + 1;          
-        widd <= widd + 1;
-        m <= m + 1;
-        if (widd == 2) begin
-            m <= m + 3;
-            widd <= 0;
-            htt <= htt + 1;
-        end
-        if (htt == 2) begin
-            m <= m - 3;
-            htt <= 0;
-        end
+//        CB_div[mm] <=  CB_mem_dwn[m]; 
+//        CR_div[mm] <=  CR_mem_dwn[m]; 
+//        mm <= mm + 1;          
+//        widd <= widd + 1;
+//        m <= m + 1;
+//        if (widd == 2) begin
+//           m <= m + 3;
+//           widd <= 0;
+//           htt <= htt + 1;
+//        end
+//        if (htt == 2) begin
+//            m <= m - 3;
+//            htt <= 0;
+//        end
         
-    end  
-end 
+//    end  
+//end 
 
 //wire en_dct;
 //assign en_dct = (CB_div[15] == 0);
